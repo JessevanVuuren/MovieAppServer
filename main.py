@@ -1,10 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from roomSystem import RoomSystem, User
 from networking import send_response 
 
-import roomSystem
 
 app = FastAPI()
-RS = roomSystem.RoomSystem()
+RS = RoomSystem()
 
 
 
@@ -14,54 +14,46 @@ async def root():
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(user: WebSocket):
-    
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    user = User(websocket)
 
-    await user.accept()
-    user_connected = True;
-    room = None
-    while user_connected:
+    while user.is_connected:
         try:
-            data = await user.receive_json()
+            data = await user.websocket.receive_json()
 
             if (data["type"] == "room"):
-                user_connected = await handle_room_request(data, user)
-                if (user_connected):
-                    room = RS.get_room(data["key"])
-                else:
-                    room = None
+                await handle_room_request(data, user)
 
-            elif (data["type"] == "movie" and room is not None):
-                await handle_movie_request(data, user, room)
+            elif (data["type"] == "movie" and user.room is not None):
+                await handle_movie_request(data, user)
 
         except WebSocketDisconnect:
             RS.leave_room(user)
-            break
+            await user.disconnect()
 
         except Exception as e:
             print(e)
-            await user.send_json(send_response(False, "failed", "Invalid json", {}))
+            await user.websocket.send_json(send_response(False, "failed", "Invalid json", {}))
 
 
-async def handle_room_request(request, user):
+async def handle_room_request(request, user:User):
     if (request["method"] == "create" and not RS.is_user_already_in_room(user)):
-        key = RS.create_room(user)
-        await user.send_json(send_response(True, "success", "", {"key": key}))
+        user.room = RS.create_room(user)
+        await user.websocket.send_json(send_response(True, "success", "", {"key": user.room.key}))
 
     elif(request["method"] == "join" and not RS.is_user_already_in_room(user)):
-        joined = RS.join_room(user, request["key"])
-        if (joined):
-            await user.send_json(send_response(True, "success", "", {"joined": joined}))
+        user.room = RS.join_room(user, request["key"])
+        if (user.room is not None):
+            await user.websocket.send_json(send_response(True, "success", "", {"joined": True}))
         else:
-            await user.send_json(send_response(False, "failed", "No room", {}))
+            await user.wanted_list.send_json(send_response(False, "failed", "No room", {"joined": False}))
     
     elif(request["method"] == "leave"):
         RS.leave_room(user)
-        await user.close()
-        return False
-
-    return True
+        await user.disconnect()
 
 
-async def handle_movie_request(request, user, room):
+
+async def handle_movie_request(request, user:User):
     pass

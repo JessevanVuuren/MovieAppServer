@@ -5,6 +5,7 @@ app = FastAPI()
 RS = roomSystem.RoomSystem()
 
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}

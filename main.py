@@ -1,4 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from networking import send_response 
+
 import roomSystem
 
 app = FastAPI()
@@ -13,17 +15,24 @@ async def root():
 
 @app.websocket("/ws")
 async def websocket_endpoint(user: WebSocket):
+    
+
     await user.accept()
     user_connected = True;
+    room = None
     while user_connected:
         try:
             data = await user.receive_json()
 
             if (data["type"] == "room"):
                 user_connected = await handle_room_request(data, user)
+                if (user_connected):
+                    room = RS.get_room(data["key"])
+                else:
+                    room = None
 
-            if (data["type"] == "movie"):
-                pass
+            elif (data["type"] == "movie" and room is not None):
+                await handle_movie_request(data, user, room)
 
         except WebSocketDisconnect:
             RS.leave_room(user)
@@ -54,5 +63,5 @@ async def handle_room_request(request, user):
     return True
 
 
-def send_response(success, status, error, payload):
-    return { "success": success, "status": status, "error": error, "payload": payload }
+async def handle_movie_request(request, user, room):
+    pass

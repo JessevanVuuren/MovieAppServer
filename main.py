@@ -5,7 +5,6 @@ from roomSystem import RoomSystem, User
 app = FastAPI()
 RS = RoomSystem()
 
-
 @app.get("/")
 async def root():
     return {"message": "Hello World"}

@@ -38,14 +38,14 @@ async def websocket_endpoint(websocket: WebSocket):
 async def handle_room_request(request, user:User):
     if (request["method"] == "create" and not RS.is_user_already_in_room(user)):
         user.room = RS.create_room(user)
-        await user.websocket.send_json(send_response(True, "success", "", {"key": user.room.key}))
+        user.room.broadcast_info(user)
 
     elif(request["method"] == "join" and not RS.is_user_already_in_room(user)):
         user.room = RS.join_room(user, request["key"])
         if (user.room is not None):
-            await user.websocket.send_json(send_response(True, "success", "", {"joined": True}))
+            user.room.broadcast_info(user)
         else:
-            await user.wanted_list.send_json(send_response(False, "failed", "No room", {"joined": False}))
+            user.room.broadcast_info(user, False, "failed", "No room")
     
     elif(request["method"] == "leave"):
         RS.leave_room(user)

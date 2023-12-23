@@ -37,7 +37,7 @@ class Room:
         user.list_of_wanted.append(id)
         self.broadcast_info(user)
 
-    def broadcast_info(self, user: User):
+    def broadcast_info(self, user: User, success = True, status = "success", error = ""):
         list_wanted: list[str] = []
         list_unwanted: list[str] = []
 
@@ -50,15 +50,16 @@ class Room:
             "amount_of_users": len(self.users),
             "wanted_list": list_wanted,
             "unwanted_list": list_unwanted,
-            "final_movie": self.final_movie
+            "final_movie": self.final_movie,
+            "key": self.key
         }
 
-        self.broadcast(payload)
+        self.broadcast(payload, success = True, status = "success", error = "")
 
-    def broadcast(self, payload):
+    def broadcast(self, payload, success = True, status = "success", error = ""):
         for user in self.users:
             asyncio.create_task(
-                user.websocket.send_json(send_response(True, "success", "", payload)))
+                user.websocket.send_json(send_response(success, status, error, payload)))
 
     def match_compare(self):
         pass

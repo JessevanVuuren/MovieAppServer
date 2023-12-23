@@ -1,4 +1,4 @@
-from networking import send_response
+from helper import send_response, logger
 from fastapi import WebSocket
 
 import asyncio
@@ -16,7 +16,10 @@ class User:
     async def disconnect(self):
         self.room = None
         self.is_connected = False
-        await self.websocket.close()
+        try:
+            await self.websocket.close()
+        except Exception as e:
+            logger.warning("User disconnected forcefully")
 
 
 class Room:
@@ -82,7 +85,7 @@ class RoomSystem:
         new_room = Room(key)
         self.rooms.append(new_room)
         new_room.add_user(user)
-        print("MAKE room - key: {}, rooms: {}".format(key, len(self.rooms)))
+        logger.debug("MAKE room - key: {}, rooms: {}".format(key, len(self.rooms)))
         return new_room
 
     def join_room(self, user: User, key: str) -> Room:
@@ -90,7 +93,7 @@ class RoomSystem:
 
             if (room.key == key):
                 room.add_user(user)
-                print("JOIN room - key: {}, users: {}".format(room.key, len(room.users)))
+                logger.debug("JOIN room - key: {}, users: {}".format(room.key, len(room.users)))
                 return room
 
         return None
@@ -99,10 +102,10 @@ class RoomSystem:
         for room in self.rooms:
             if (room.is_user_in_room(user)):
                 room.remove_user(user)
-                print("EXIT room - key: {}, users: {}".format(room.key, len(room.users)))
+                logger.debug("EXIT room - key: {}, users: {}".format(room.key, len(room.users)))
                 if (len(room.users) == 0):
                     self.rooms.remove(room)
-                    print("REMOVE room - key: {}".format(room.key))
+                    logger.debug("REMOVE room - key: {}".format(room.key))
 
     def generate_key(self) -> Room:
         key = str(random.randint(0, 100_000)).zfill(5)

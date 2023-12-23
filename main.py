@@ -1,11 +1,9 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from helper import send_response, logger
 from roomSystem import RoomSystem, User
-from networking import send_response 
-
 
 app = FastAPI()
 RS = RoomSystem()
-
 
 
 @app.get("/")
@@ -30,7 +28,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
         except WebSocketDisconnect:
             RS.leave_room(user)
-            await user.disconnect()
+            if (user.is_connected):
+                await user.disconnect()
 
         except Exception as e:
             print(e)
@@ -51,7 +50,8 @@ async def handle_room_request(request, user:User):
     
     elif(request["method"] == "leave"):
         RS.leave_room(user)
-        await user.disconnect()
+        if (user.is_connected):
+            await user.disconnect()
 
 
 

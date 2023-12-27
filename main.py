@@ -10,6 +10,11 @@ async def root():
     return {"message": "Hello World"}
 
 
+@app.get("/is-online")
+async def status():
+    return {"status": True}
+    
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -40,17 +45,17 @@ async def handle_room_request(request, user:User):
         user.room = RS.create_room(user)
         user.room.broadcast_info(user)
 
+
     elif(request["method"] == "join" and not RS.is_user_already_in_room(user)):
         user.room = RS.join_room(user, request["key"])
         if (user.room is not None):
             user.room.broadcast_info(user)
         else:
-            user.room.broadcast_info(user, False, "failed", "No room")
+            user.websocket.send_json(send_response(False, "failed", "No room", {}))
+            # user.room.broadcast_info(user, False, "failed", "No room")
     
     elif(request["method"] == "leave"):
         RS.leave_room(user)
-        if (user.is_connected):
-            await user.disconnect()
 
 
 

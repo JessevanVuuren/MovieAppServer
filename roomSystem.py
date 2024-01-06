@@ -41,6 +41,8 @@ class Room:
         list_wanted: list[str] = []
         list_unwanted: list[str] = []
 
+        self.log_all()
+
         for userI in self.users:
             if (user != userI):
                 list_wanted += userI.list_of_wanted
@@ -55,6 +57,17 @@ class Room:
         }
 
         self.broadcast(payload, success = True, status = "success", error = "")
+
+    def log_all(self):
+        list_wanted: list[str] = []
+        list_unwanted: list[str] = []
+
+        for userI in self.users:
+            list_wanted += userI.list_of_wanted
+            list_unwanted += userI.list_of_unwanted
+
+        logger.debug("[" + self.key + "] [wanted] " + str(list_wanted))
+        logger.debug("[" + self.key + "] [unwanted] " + str(list_unwanted))
 
     def broadcast(self, payload, success = True, status = "success", error = ""):
         for user in self.users:

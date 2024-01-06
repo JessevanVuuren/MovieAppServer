@@ -36,7 +36,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 await user.disconnect()
 
         except Exception as e:
-            print(e)
+            logger.warning(e)
             await user.websocket.send_json(send_response(False, "failed", "Invalid json", {}))
 
 
@@ -60,4 +60,16 @@ async def handle_room_request(request, user:User):
 
 
 async def handle_movie_request(request, user:User):
+    # if (RS.user_is_not_in_room(user)):
+    #     pass
+
+    
+    if (request["method"] == "wanted"):
+        room = RS.get_room(request["key"])
+        room.add_wanted(user, request["id"])
+    
+    if (request["method"] == "unwanted"):
+        room = RS.get_room(request["key"])
+        room.add_unwanted(user, request["id"])
+    
     pass

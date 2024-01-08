@@ -1,0 +1,6 @@
+/__pycache__
+/scripts
+/test
+/.git
+.gitignore
+.env

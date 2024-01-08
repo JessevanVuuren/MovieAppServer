@@ -65,8 +65,6 @@ async def handle_room_request(request, user:User):
 async def handle_movie_request(request, user:User):
     # if (RS.user_is_not_in_room(user)):
     #     pass
-
-    
     if (request["method"] == "wanted"):
         room = RS.get_room(request["key"])
         room.add_wanted(user, request["id"])
@@ -74,5 +72,3 @@ async def handle_movie_request(request, user:User):
     if (request["method"] == "unwanted"):
         room = RS.get_room(request["key"])
         room.add_unwanted(user, request["id"])
-    
-    pass

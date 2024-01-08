@@ -2,7 +2,7 @@ version: '0.0.1'
 
 services:
   app-dev:
-    working_dir: /root
+    working_dir: /app
     build:
       context: .
       target: dev
@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./:/root"
+      - "./:root/"
     environment:
       - SERVER_TYPE=development
 

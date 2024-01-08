@@ -1,14 +1,25 @@
 version: '0.0.1'
 
 services:
-  app:
+  app-dev:
     working_dir: /root
     build:
       context: .
+      target: dev
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./:/root"
+    environment:
+      - SERVER_TYPE=development
+
+  app-pro:
+    build:
+      context: .
+      target: pro
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - LOG_LEVEL=debug
-    volumes:
-      - "./:/root"
+      - SERVER_TYPE=production

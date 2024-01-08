@@ -1,9 +1,12 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from helper import send_response, logger
 from roomSystem import RoomSystem, User
+import os
 
 app = FastAPI()
 RS = RoomSystem()
+
+logger.warning("SERVER TYPE: " + os.getenv("SERVER_TYPE"))
 
 @app.get("/")
 async def root():

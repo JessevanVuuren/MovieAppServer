@@ -1,4 +1,5 @@
 from helper import send_response, logger
+from collections import Counter
 from fastapi import WebSocket
 
 import asyncio
@@ -28,25 +29,22 @@ class Room:
         self.users: list[User] = []
         self.final_movie = None
 
-    def add_unwanted(self, user:User, id: str):
-        user.list_of_unwanted.append(id)
-        self.match_compare()
-        self.broadcast_info(user)
+    def add_unwanted(self, user: User, id: str):
+        if (id not in user.list_of_unwanted):
+            user.list_of_unwanted.append(id)
 
-    def add_wanted(self, user:User, id: str):
-        user.list_of_wanted.append(id)
-        self.broadcast_info(user)
+    def add_wanted(self, user: User, id: str):
+        if (id not in user.list_of_wanted):
+            user.list_of_wanted.append(id)
+            self.match_compare()
 
-    def broadcast_info(self, user: User, success = True, status = "success", error = ""):
+    def broadcast_info(self, user: User, success=True, status="success", error=""):
         list_wanted: list[str] = []
         list_unwanted: list[str] = []
 
-        self.log_all()
-
         for userI in self.users:
-            if (user != userI):
-                list_wanted += userI.list_of_wanted
-                list_unwanted += userI.list_of_unwanted
+            list_wanted += userI.list_of_wanted
+            list_unwanted += userI.list_of_unwanted
 
         payload = {
             "amount_of_users": len(self.users),
@@ -55,31 +53,30 @@ class Room:
             "final_movie": self.final_movie,
             "key": self.key
         }
+        asyncio.create_task(   
+        self.broadcast(payload, success=True, status="success", error="")
+        )
 
-        self.broadcast(payload, success = True, status = "success", error = "")
-
-    def log_all(self):
-        list_wanted: list[str] = []
-        list_unwanted: list[str] = []
-
-        for userI in self.users:
-            list_wanted += userI.list_of_wanted
-            list_unwanted += userI.list_of_unwanted
-
-        logger.debug("[" + self.key + "] [wanted] " + str(list_wanted))
-        logger.debug("[" + self.key + "] [unwanted] " + str(list_unwanted))
-
-    def broadcast(self, payload, success = True, status = "success", error = ""):
+    async def broadcast(self, payload, success=True, status="success", error=""):
         for user in self.users:
-            asyncio.create_task(
-                user.websocket.send_json(send_response(success, status, error, payload)))
+            await user.websocket.send_json(send_response(success, status, error, payload))
 
     def match_compare(self):
-        pass
+        all_wanted_list = []
+
+        for user in self.users:
+            all_wanted_list += user.list_of_wanted
+
+        counter = Counter(all_wanted_list)
+        set_list = list(set(all_wanted_list))
+
+        for movie in set_list:
+            if (counter[movie] >= len(self.users)):
+                self.final_movie = movie
+                break
 
     def add_user(self, user: User):
         self.users.append(user)
-        self.broadcast_info(user)
 
     def remove_user(self, user: User):
         if (self.is_user_in_room(user)):
@@ -99,7 +96,8 @@ class RoomSystem:
         new_room = Room(key)
         self.rooms.append(new_room)
         new_room.add_user(user)
-        logger.debug("MAKE room - key: {}, rooms: {}".format(key, len(self.rooms)))
+        logger.debug(
+            "MAKE room - key: {}, rooms: {}".format(key, len(self.rooms)))
         return new_room
 
     def join_room(self, user: User, key: str) -> Room:
@@ -107,7 +105,8 @@ class RoomSystem:
 
             if (room.key == key):
                 room.add_user(user)
-                logger.debug("JOIN room - key: {}, users: {}".format(room.key, len(room.users)))
+                logger.debug(
+                    "JOIN room - key: {}, users: {}".format(room.key, len(room.users)))
                 return room
 
         return None
@@ -116,7 +115,8 @@ class RoomSystem:
         for room in self.rooms:
             if (room.is_user_in_room(user)):
                 room.remove_user(user)
-                logger.debug("EXIT room - key: {}, users: {}".format(room.key, len(room.users)))
+                logger.debug(
+                    "EXIT room - key: {}, users: {}".format(room.key, len(room.users)))
                 if (len(room.users) == 0):
                     self.rooms.remove(room)
                     logger.debug("REMOVE room - key: {}".format(room.key))
@@ -129,7 +129,7 @@ class RoomSystem:
 
         self.generate_key()
 
-    def is_user_already_in_room(self, user: User) -> bool:
+    def is_user_in_room(self, user: User) -> bool:
         for room in self.rooms:
             if (room.is_user_in_room(user)):
                 return True

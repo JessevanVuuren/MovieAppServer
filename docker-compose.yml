@@ -2,19 +2,21 @@ version: '0.0.1'
 
 services:
   app-dev:
-    working_dir: /app
+    container_name: movie-dev
+    working_dir: /root
     build:
       context: .
       target: dev
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "9876:9876"
     volumes:
-      - "./:root/"
+      - "./:/root"
     environment:
       - SERVER_TYPE=development
 
   app-pro:
+    container_name: movie-pro
     build:
       context: .
       target: pro

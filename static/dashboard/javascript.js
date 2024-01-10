@@ -1,5 +1,5 @@
 const host_url = window.location.host
-const protocol = window.protocol === "https:" ? "wss://" : "ws://"
+const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
 const wss_url = protocol + host_url + window.DASHBOARD_URL_MOVIE_APP + "-wss"
 console.log(wss_url)
 

@@ -1,31 +1,42 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from helper import send_response, logger
-from roomSystem import RoomSystem, User
+from room_system import RoomSystem, User
+from request_handle import *
+
+import asyncio
+import time
 import os
+
+BASE_URL = os.getenv("BASE_URL")
+DASHBOARD_URL = os.getenv("DASHBOARD_URL")
+DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD")
 
 app = FastAPI()
 RS = RoomSystem()
 
 logger.warning("SERVER TYPE: " + os.getenv("SERVER_TYPE"))
 
+app.mount(DASHBOARD_URL, StaticFiles(directory="static", html=True), name="static")
+
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
 
 @app.get('/robots.txt', response_class=PlainTextResponse)
 def robots():
     return """User-agent: *\nDisallow: /"""
 
 
-@app.get("/is-online")
+@app.get(BASE_URL + "/is-online")
 async def status():
     return {"status": True}
-    
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+
+@app.websocket(BASE_URL + "/wss")
+async def websocket_tinder(websocket: WebSocket):
     await websocket.accept()
     user = User(websocket)
 
@@ -34,7 +45,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await user.websocket.receive_json()
 
             if (data["type"] == "room"):
-                await handle_room_request(data, user)
+                await handle_room_request(data, user, RS)
 
             elif (data["type"] == "movie" and user.room is not None):
                 await handle_movie_request(data, user)
@@ -49,28 +60,25 @@ async def websocket_endpoint(websocket: WebSocket):
             await user.websocket.send_json(send_response(False, "Server error", "Fault", {}))
 
 
-async def handle_room_request(request, user:User):
-    if (request["method"] == "create" and not RS.is_user_in_room(user)):
-        user.room = RS.create_room(user)
-        user.room.broadcast_info(user)
 
+@app.websocket(DASHBOARD_URL + "-wss")
+async def websocket_dashboard(websocket: WebSocket):
+    await websocket.accept()
+    is_connected = True
+    while is_connected:
+        try:
+            
+            payload = handle_payload_response(RS)
+            await websocket.send_json(send_response(True, "success", "", payload))
+            await asyncio.sleep(1)
 
-    elif(request["method"] == "join" and not RS.is_user_in_room(user)):
-        user.room = RS.join_room(user, request["key"])
-        if (user.room is not None):
-            user.room.broadcast_info(user)
-        else:
-            await user.websocket.send_json(send_response(False, "failed", "No room", {}))
-    
-    elif(request["method"] == "leave"):
-        RS.leave_room(user)
+        except WebSocketDisconnect:
+            await websocket.close()
+            is_connected = False
+            break
 
-
-async def handle_movie_request(request, user:User):
-
-    if (request["method"] == "wanted"):
-        user.room.add_wanted(user, request["id"])
-        user.room.broadcast_info(user)
-    
-    if (request["method"] == "unwanted"):
-        user.room.add_unwanted(user, request["id"])
+        except Exception as e:
+            await websocket.close()
+            logger.warning(e)
+            is_connected = False
+            break

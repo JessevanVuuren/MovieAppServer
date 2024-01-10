@@ -13,4 +13,7 @@ CMD ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "987
 
 FROM base AS pro
 
-CMD ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN chmod +x /app/env.sh
+
+
+CMD ./env.sh && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000

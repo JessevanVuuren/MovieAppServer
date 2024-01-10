@@ -14,6 +14,9 @@ services:
       - "./:/root"
     environment:
       - SERVER_TYPE=development
+      - BASE_URL=${BASE_URL}
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
+      - DASHBOARD_URL=${DEV_DASHBOARD_URL}
 
   app-pro:
     container_name: movie-pro
@@ -25,3 +28,6 @@ services:
       - "8000:8000"
     environment:
       - SERVER_TYPE=production
+      - BASE_URL=${BASE_URL}
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
+      - DASHBOARD_URL=${DASHBOARD_URL}

@@ -1,0 +1,1 @@
+window.DASHBOARD_URL_MOVIE_APP = "/development"

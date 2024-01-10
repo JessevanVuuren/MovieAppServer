@@ -28,33 +28,31 @@ class Room:
         self.key: str = key  # -> 04232
         self.users: list[User] = []
         self.final_movie = None
+        self.full_wanted_list: list[str] = []
+        self.full_unwanted_list: list[str] = []
 
     def add_unwanted(self, user: User, id: str):
         if (id not in user.list_of_unwanted):
+            self.full_unwanted_list.append(id)
             user.list_of_unwanted.append(id)
 
     def add_wanted(self, user: User, id: str):
         if (id not in user.list_of_wanted):
+            self.full_wanted_list.append(id)
             user.list_of_wanted.append(id)
             self.match_compare()
 
     def broadcast_info(self, user: User, success=True, status="success", error=""):
-        list_wanted: list[str] = []
-        list_unwanted: list[str] = []
-
-        for userI in self.users:
-            list_wanted += userI.list_of_wanted
-            list_unwanted += userI.list_of_unwanted
-
         payload = {
             "amount_of_users": len(self.users),
-            "wanted_list": list_wanted,
-            "unwanted_list": list_unwanted,
+            "wanted_list": self.full_wanted_list,
+            "unwanted_list": self.full_unwanted_list,
             "final_movie": self.final_movie,
             "key": self.key
         }
+
         asyncio.create_task(   
-        self.broadcast(payload, success=True, status="success", error="")
+            self.broadcast(payload, success=True, status="success", error="")
         )
 
     async def broadcast(self, payload, success=True, status="success", error=""):
@@ -62,13 +60,8 @@ class Room:
             await user.websocket.send_json(send_response(success, status, error, payload))
 
     def match_compare(self):
-        all_wanted_list = []
-
-        for user in self.users:
-            all_wanted_list += user.list_of_wanted
-
-        counter = Counter(all_wanted_list)
-        set_list = list(set(all_wanted_list))
+        counter = Counter(self.full_wanted_list)
+        set_list = list(set(self.full_wanted_list))
 
         for movie in set_list:
             if (counter[movie] >= len(self.users)):
@@ -140,3 +133,12 @@ class RoomSystem:
         for room in self.rooms:
             if (room.key == key):
                 return room
+
+    def get_amount_of_rooms(self) -> int:
+        return len(self.rooms)
+
+    def get_amount_of_users(self) -> int:
+        users = 0
+        for room in self.rooms:
+            users += len(room.users)
+        return users

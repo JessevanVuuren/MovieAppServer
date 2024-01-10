@@ -35,7 +35,7 @@ async def status():
     return {"status": True}
 
 
-@app.websocket(BASE_URL + "/wss")
+@app.websocket(BASE_URL + "/ws")
 async def websocket_tinder(websocket: WebSocket):
     await websocket.accept()
     user = User(websocket)

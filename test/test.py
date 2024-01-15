@@ -1,34 +1,17 @@
-from collections import Counter
+import datetime
+import time
 
-users = [
-    ["123","123","123","123","123","123","123","123","123","123","123", "12"],
-    ["123", "12"],
-    ["12", "44", "44", "44", "44", "44", "44", "44"],
-]
+now = int(time.time())
+date = datetime.datetime.fromtimestamp(now)
+ban = (date + datetime.timedelta(seconds=10)).timestamp()
 
+print(now)
+print(ban)
 
-
-
-
-
-
-
-# all_wanted_list.sort()
-
-# last_counted = all_wanted_list[0]
-# movie = all_wanted_list[0]
-# highest_number = 0
-# count = 0
-
-# for wanted in all_wanted_list:
-#     if (last_counted == wanted):
-#         count += 1
-#         if (count > highest_number):
-#             movie = wanted
-#             highest_number = count
-#     else:
-#         count = 0
-#     last_counted = wanted
-
-# print(all_wanted_list)
-# print(movie)
+while (True):
+    now = int(time.time())
+    time.sleep(1)
+    if (now >= ban):
+        print("not banned")
+    else:
+        print("banned")

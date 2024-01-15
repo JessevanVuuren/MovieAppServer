@@ -1,10 +1,11 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from helper import send_response, logger
 from room_system import RoomSystem, User
 from request_handle import *
+from helper import *
 
+import datetime
 import asyncio
 import time
 import os
@@ -16,14 +17,18 @@ DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD")
 app = FastAPI()
 RS = RoomSystem()
 
+connection_users:dict[str, dict[int, int]] = {}
+
 logger.warning("SERVER TYPE: " + os.getenv("SERVER_TYPE"))
 
-app.mount(DASHBOARD_URL, StaticFiles(directory="static", html=True), name="static")
+app.mount(DASHBOARD_URL, StaticFiles(
+    directory="static", html=True), name="static")
 
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.get('/robots.txt', response_class=PlainTextResponse)
 def robots():
@@ -60,14 +65,46 @@ async def websocket_tinder(websocket: WebSocket):
             await user.websocket.send_json(send_response(False, "Server error", "Fault", {}))
 
 
-
 @app.websocket(DASHBOARD_URL + "-wss")
 async def websocket_dashboard(websocket: WebSocket):
+    host_ip = websocket.client.host
     await websocket.accept()
-    is_connected = True
-    while is_connected:
+    is_auth = False
+
+    if (host_ip not in connection_users.keys()):
+        logger.warning("New user: " + host_ip)
+        connection_ban(connection_users, host_ip, reset=True)
+
+    pre_ban_time = connection_users[host_ip]["ban_time"]
+    while (True):
         try:
-            
+            password = (await websocket.receive_json())["password"]
+
+            if password == os.getenv("DASHBOARD_PASSWORD") and int(time.time()) > connection_users[host_ip]["new_time"]:
+                connection_ban(connection_users, host_ip, reset=True)
+                is_auth = True
+                break
+
+            if (int(time.time()) > connection_users[host_ip]["new_time"]):
+                connection_ban(connection_users, host_ip)
+
+            if (pre_ban_time != connection_users[host_ip]["ban_time"]):
+                logger.warning("host: {}, banned for: {}".format(host_ip, connection_users[host_ip]["ban_time"]))
+
+            pre_ban_time = connection_users[host_ip]["ban_time"]
+            await websocket.send_json(send_response(False, "Failed", "wrong password", {"ban_time": connection_users[host_ip]["ban_time"]}))
+
+        except WebSocketDisconnect:
+            logger.warning("User disconnect: " + host_ip)
+            break
+
+        except RuntimeError:
+            logger.warning("User disconnect: " + host_ip)
+            break
+
+
+    while is_auth:
+        try:
             payload = handle_payload_response(RS)
             await websocket.send_json(send_response(True, "success", "", payload))
             await asyncio.sleep(1)

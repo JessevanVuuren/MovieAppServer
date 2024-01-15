@@ -10,6 +10,25 @@ const webSocket = new WebSocket(wss_url);
 webSocket.onmessage = async (data) => {
   const message = await JSON.parse(data.data)
   console.log(message)
-  users.innerText = message.payload.amount_users
-  rooms.innerText = message.payload.amount_rooms
+
+  if (message.success) {
+    users.innerText = message.payload.amount_users
+    rooms.innerText = message.payload.amount_rooms
+  } else {
+    if (message.error == "wrong password") {
+      window.location.href = "/"
+    }
+  }
 }
+
+webSocket.onopen = async = (data) => {
+  get_dashboard_password()
+}
+
+const get_dashboard_password = () => {
+  const return_value = prompt("Password:");
+  console.log(return_value)
+  if (!return_value) get_dashboard_password()
+  webSocket.send(JSON.stringify({password: return_value}))
+}
+

@@ -3,7 +3,7 @@ version: '0.0.1'
 services:
   app-dev:
     container_name: movie-dev
-    working_dir: /root
+    working_dir: /app
     build:
       context: .
       target: dev
@@ -11,7 +11,7 @@ services:
     ports:
       - "9876:9876"
     volumes:
-      - "./:/root"
+      - "./:/app"
     environment:
       - SERVER_TYPE=development
       - BASE_URL=${BASE_URL}
@@ -25,7 +25,7 @@ services:
       target: pro
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "6789:6789"
     environment:
       - SERVER_TYPE=production
       - BASE_URL=${BASE_URL}

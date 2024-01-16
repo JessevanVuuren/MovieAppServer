@@ -72,6 +72,3 @@ def connection_ban(list:dict[str, dict[int, int]], host_ip:str, reset=False):
         case _ if (list[host_ip]["count"] > 10): 
             list[host_ip]["new_time"] = (ban_time + datetime.timedelta(days=1)).timestamp()
             list[host_ip]["ban_time"] = "1 day"
-
-    # ban_time = ban_time + datetime.timedelta(seconds=10 * list[host_ip]["count"] ** 2)
-    # list[host_ip]["ban_time"] = ban_time.timestamp()

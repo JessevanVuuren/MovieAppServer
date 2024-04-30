@@ -25,7 +25,7 @@ class User:
 
 class Room:
     def __init__(self, key: str) -> None:
-        self.key: str = key  # -> 04232
+        self.key: str = key
         self.users: list[User] = []
         self.final_movie = None
         self.full_wanted_list: list[str] = []
@@ -35,6 +35,9 @@ class Room:
         if (id not in user.list_of_unwanted):
             self.full_unwanted_list.append(id)
             user.list_of_unwanted.append(id)
+        
+        if (id in self.full_wanted_list):
+            self.full_wanted_list.remove(id)
 
     def add_wanted(self, user: User, id: str):
         if (id not in user.list_of_wanted):
@@ -42,7 +45,7 @@ class Room:
             user.list_of_wanted.append(id)
             self.match_compare()
 
-    def broadcast_info(self, user: User, success=True, status="success", error=""):
+    def broadcast_info(self, success=True, status="success", error=""):
         payload = {
             "amount_of_users": len(self.users),
             "wanted_list": self.full_wanted_list,
@@ -51,11 +54,9 @@ class Room:
             "key": self.key
         }
 
-        asyncio.create_task(   
-            self.broadcast(payload, success=True, status="success", error="")
-        )
+        asyncio.create_task(self.send_payload_to_user(payload, success=True, status="success", error=""))
 
-    async def broadcast(self, payload, success=True, status="success", error=""):
+    async def send_payload_to_user(self, payload, success=True, status="success", error=""):
         for user in self.users:
             await user.websocket.send_json(send_response(success, status, error, payload))
 
@@ -78,6 +79,10 @@ class Room:
     def is_user_in_room(self, user: User):
         return user in self.users
 
+    def cancel_final_movie(self):
+        self.full_wanted_list.remove(self.final_movie)
+        self.final_movie = None
+        self.broadcast_info()
 
 class RoomSystem:
     def __init__(self) -> None:
@@ -108,6 +113,7 @@ class RoomSystem:
         for room in self.rooms:
             if (room.is_user_in_room(user)):
                 room.remove_user(user)
+                room.broadcast_info()
                 logger.debug(
                     "EXIT room - key: {}, users: {}".format(room.key, len(room.users)))
                 if (len(room.users) == 0):

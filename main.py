@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from room_system import RoomSystem, User
+# from dotenv import load_dotenv
 from request_handle import *
 from helper import *
 
@@ -9,6 +10,8 @@ import datetime
 import asyncio
 import time
 import os
+
+# load_dotenv()
 
 BASE_URL = os.getenv("BASE_URL")
 DASHBOARD_URL = os.getenv("DASHBOARD_URL")

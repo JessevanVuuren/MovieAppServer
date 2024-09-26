@@ -3,20 +3,15 @@ version: '0.0.1'
 services:
   app-dev:
     container_name: movie-dev
-    working_dir: /app
     build:
       context: .
       target: dev
       dockerfile: Dockerfile
     ports:
       - "9876:9876"
-    volumes:
-      - "./:/app"
     environment:
       - SERVER_TYPE=development
       - BASE_URL=${BASE_URL}
-      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
-      - DASHBOARD_URL=${DEV_DASHBOARD_URL}
 
   app-pro:
     container_name: movie-pro
@@ -29,5 +24,3 @@ services:
     environment:
       - SERVER_TYPE=production
       - BASE_URL=${BASE_URL}
-      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
-      - DASHBOARD_URL=${DASHBOARD_URL}

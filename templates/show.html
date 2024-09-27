@@ -4,14 +4,14 @@
 <head>
   <title>{{movieName}}</title>
   <meta charset="UTF-8">
-  <meta name="og:title" content="{{data.title}}" />
-  <meta name="og:image" content="{{posterPathW185}}" />
-  <meta name="description" content="{{movieDescription}}" />
-  <meta name="og:description" content="{{movieDescription}}" /> {{style}}
+  <meta name="og:title" content={{data.title}} />
+  <meta name="og:image" content="https://image.tmdb.org/t/p/w185/{{data.poster_path}}" />
+  <meta name="description" content={{data.overview}} />
+  <meta name="og:description" content={{data.overview}} />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,900&family=Ubuntu:wght@700&display=swap" rel="stylesheet">
-  <link href="{{ url_for('static', path='/show_style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', path='/public/show_style.css') }}" rel="stylesheet">
 </head>
 
 <body> 

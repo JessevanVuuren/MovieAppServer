@@ -11,15 +11,11 @@ BASE_URL = os.getenv("BASE_URL")
 SERVER_TYPE = os.getenv("SERVER_TYPE")
 
 app = FastAPI()
+html = FastAPI()
 roomSystem = RoomSystem()
 
 logger.warning("SERVER TYPE: " + SERVER_TYPE)
-app.mount(BASE_URL, StaticFiles(directory="static", html=True), name="static")
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 
 @app.get('/robots.txt', response_class=PlainTextResponse)
@@ -55,3 +51,6 @@ async def websocket_tinder(websocket: WebSocket):
         except Exception as e:
             logger.warning(e)
             await user.websocket.send_json(send_response(False, "Server error", "Fault", {}))
+
+
+app.mount(BASE_URL, StaticFiles(directory="frontend/build", html=True), name="static")

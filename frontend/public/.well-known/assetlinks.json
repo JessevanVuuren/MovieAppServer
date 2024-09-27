@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.jesse.movieRecommender",
+            "sha256_cert_fingerprints": [
+                "0A:C0:E2:88:DE:B6:D9:66:35:BD:BC:5D:B5:07:93:79:86:08:73:4A:76:16:FD:0E:3C:F2:19:21:79:28:3C:5C"
+            ]
+        }
+    }
+]

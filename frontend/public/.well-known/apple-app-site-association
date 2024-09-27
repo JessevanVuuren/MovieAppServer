@@ -1,0 +1,9 @@
+{
+  "applinks": {
+    "apps": [], 
+    "details": [{
+      "appID": "ZBKSFHHTT9.com.jesse.movieRecommender",
+      "paths": ["/movie/*"]
+    }]
+  }
+}

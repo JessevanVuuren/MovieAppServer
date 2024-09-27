@@ -1,6 +1,19 @@
 from room_system import RoomSystem, User
 from helper import send_response, logger
 
+import requests
+import os 
+
+API_KEY = os.getenv("API_KEY")
+
+def check_show_response(type:str, id:int):
+    response = requests.get(f"https://api.themoviedb.org/3/{type}/{id}?api_key={API_KEY}&language=en-US")
+    data = response.json()
+
+    if (response.status_code != 200 or ("success" in data.keys() and data["success"] == False)):
+        return True, data
+
+    return False, data
 
 async def handle_room_request(request, user: User, RS: RoomSystem):
     if (request["method"] == "create" and not RS.is_user_in_room(user)):

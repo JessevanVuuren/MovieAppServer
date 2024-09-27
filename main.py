@@ -1,9 +1,13 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from room_system import RoomSystem, User
+
 from request_handle import *
 from helper import *
+import requests
 import os
 
 
@@ -16,6 +20,12 @@ roomSystem = RoomSystem()
 
 logger.warning("SERVER TYPE: " + SERVER_TYPE)
 
+templates = Jinja2Templates(directory="templates")
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return RedirectResponse("/")
 
 
 @app.get('/robots.txt', response_class=PlainTextResponse)
@@ -26,6 +36,30 @@ def robots():
 @app.get(BASE_URL + "/is-online")
 async def status():
     return {"status": True}
+
+
+@app.get(BASE_URL + "/movie")
+async def movie(id: int, request: Request):
+    err, data = check_show_response("movie", id)
+
+    if (err):
+        logger.error(f"id: {id} does not exist")
+        return RedirectResponse("/")
+
+    logger.info(f"Shared movie: {id}, name: {data['title']}")
+    return templates.TemplateResponse("show.html", {"request": request, "data": data, "title": data['title']})
+
+
+@app.get(BASE_URL + "/tv")
+async def tvShow(id: int, request: Request):
+    err, data = check_show_response("tv", id)
+
+    if (err):
+        logger.error(f"id: {id} does not exist")
+        return RedirectResponse("/")
+
+    logger.info(f"Shared tv-show: {id}, name: {data['name']}")
+    return templates.TemplateResponse("show.html", {"request": request, "data": data, "title": data['title']})
 
 
 @app.websocket(BASE_URL + "/ws")

@@ -14,6 +14,7 @@ services:
       - "./:/app"
     environment:
       - SERVER_TYPE=development
+      - API_KEY=${API_KEY}
       - BASE_URL=${BASE_URL}
 
   app-pro:
@@ -26,4 +27,5 @@ services:
       - "6789:6789"
     environment:
       - SERVER_TYPE=production
+      - API_KEY=${API_KEY}
       - BASE_URL=${BASE_URL}

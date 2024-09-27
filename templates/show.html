@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>{{movieName}}</title>
+  <meta charset="UTF-8">
+  <meta name="og:title" content="{{data.title}}" />
+  <meta name="og:image" content="{{posterPathW185}}" />
+  <meta name="description" content="{{movieDescription}}" />
+  <meta name="og:description" content="{{movieDescription}}" /> {{style}}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,900&family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', path='/show_style.css') }}" rel="stylesheet">
+</head>
+
+<body> 
+  <div class="mainImgHolder">
+    <div class="BackDropFade">
+      <img class="BackDropImg" src="https://image.tmdb.org/t/p/w500/{{data.poster_path}}" alt="{{data.title}}">
+    </div>
+
+  </div>
+  <div class="mainBack">
+    <img class="posterImg" src="https://image.tmdb.org/t/p/original/{{data.backdrop_path}}" alt="{{data.title}}">
+    <h1 class="titleText">{{data.title}}</h1>
+    <p class="descriptionText">{{data.overview}}</p>
+  </div>
+</body>
+
+</html>

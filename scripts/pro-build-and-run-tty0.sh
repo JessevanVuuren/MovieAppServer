@@ -28,4 +28,6 @@ npm run build
 
 cd ../
 
-sudo docker-compose up --build app-pro > /dev/tty0 2>&1 &
+mv ./frontend/build ./static
+
+sudo docker-compose up --build app-pro

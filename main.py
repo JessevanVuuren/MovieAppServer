@@ -53,4 +53,4 @@ async def websocket_tinder(websocket: WebSocket):
             await user.websocket.send_json(send_response(False, "Server error", "Fault", {}))
 
 
-app.mount(BASE_URL, StaticFiles(directory="frontend/build", html=True), name="static")
+app.mount(BASE_URL, StaticFiles(directory="static", html=True), name="static")
